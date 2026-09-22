@@ -22,15 +22,15 @@ public class VehicleDetection {
 
     private String imageName;
 
-    private int carCount;
+    private Integer carCount;
 
-    private int busCount;
+    private Integer busCount;
 
-    private int truckCount;
+    private Integer truckCount;
 
-    private int motorcycleCount;
+    private Integer motorcycleCount;
 
-    private int totalVehicles;
+    private Integer totalVehicles;
 
     private LocalDateTime detectedAt;
 }
