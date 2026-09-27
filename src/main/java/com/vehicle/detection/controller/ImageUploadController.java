@@ -1,27 +1,29 @@
 package com.vehicle.detection.controller;
 
+import ai.djl.modality.Classifications;
 import ai.djl.modality.cv.Image;
 import ai.djl.modality.cv.ImageFactory;
 import ai.djl.modality.cv.output.DetectedObjects;
+import com.vehicle.detection.entity.VehicleDetection;
 import com.vehicle.detection.service.VehicleDetectionModelService;
+import com.vehicle.detection.service.VehicleDetectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ai.djl.modality.Classifications;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/images")
 public class ImageUploadController {
 
     private final VehicleDetectionModelService modelService;
+    private final VehicleDetectionService vehicleDetectionService;
 
     public ImageUploadController(
-            VehicleDetectionModelService modelService) {
+            VehicleDetectionModelService modelService,
+            VehicleDetectionService vehicleDetectionService) {
+
         this.modelService = modelService;
+        this.vehicleDetectionService = vehicleDetectionService;
     }
 
     @PostMapping("/detect")
@@ -35,52 +37,67 @@ public class ImageUploadController {
 
         try {
 
+            // Convert uploaded file into a DJL Image
             Image image = ImageFactory.getInstance()
                     .fromInputStream(imageFile.getInputStream());
 
+            // Run AI object detection
             DetectedObjects detections =
                     modelService.detect(image);
 
-            List<Map<String, Object>> detectedObjects =
-                    new ArrayList<>();
+            int carCount = 0;
+            int busCount = 0;
+            int truckCount = 0;
+            int motorcycleCount = 0;
 
+            // Count only vehicles
             for (Classifications.Classification object :
                     detections.items()) {
 
-                Map<String, Object> detectedObject =
-                        new HashMap<>();
+                String className =
+                        object.getClassName().toLowerCase();
 
-                detectedObject.put(
-                        "className",
-                        object.getClassName()
-                );
+                switch (className) {
 
-                detectedObject.put(
-                        "probability",
-                        object.getProbability()
-                );
+                    case "car":
+                        carCount++;
+                        break;
 
-                detectedObjects.add(detectedObject);
+                    case "bus":
+                        busCount++;
+                        break;
+
+                    case "truck":
+                        truckCount++;
+                        break;
+
+                    case "motorcycle":
+                        motorcycleCount++;
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
-            Map<String, Object> response = new HashMap<>();
+            // Create database entity
+            VehicleDetection detection =
+                    new VehicleDetection();
 
-            response.put(
-                    "imageName",
+            detection.setImageName(
                     imageFile.getOriginalFilename()
             );
 
-            response.put(
-                    "totalDetected",
-                    detectedObjects.size()
-            );
+            detection.setCarCount(carCount);
+            detection.setBusCount(busCount);
+            detection.setTruckCount(truckCount);
+            detection.setMotorcycleCount(motorcycleCount);
 
-            response.put(
-                    "detections",
-                    detectedObjects
-            );
+            // Service calculates total + time and saves to MySQL
+            VehicleDetection savedDetection =
+                    vehicleDetectionService.saveDetection(detection);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(savedDetection);
 
         } catch (Exception e) {
 
