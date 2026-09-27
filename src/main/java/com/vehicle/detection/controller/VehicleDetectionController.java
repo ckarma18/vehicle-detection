@@ -19,6 +19,7 @@ public class VehicleDetectionController {
         this.vehicleDetectionService = vehicleDetectionService;
     }
 
+    // POST - Save a detection
     @PostMapping
     public ResponseEntity<VehicleDetection> createDetection(
             @RequestBody VehicleDetection detection) {
@@ -31,11 +32,33 @@ public class VehicleDetectionController {
                 .body(savedDetection);
     }
 
+    // GET - Get all detections
     @GetMapping
     public ResponseEntity<List<VehicleDetection>> getAllDetections() {
 
         return ResponseEntity.ok(
                 vehicleDetectionService.getAllDetections()
+        );
+    }
+
+    // GET - Get one detection by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<VehicleDetection> getDetectionById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                vehicleDetectionService.getDetectionById(id)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteDetection(
+            @PathVariable Long id) {
+
+        vehicleDetectionService.deleteDetection(id);
+
+        return ResponseEntity.ok(
+                "Detection deleted successfully."
         );
     }
 }

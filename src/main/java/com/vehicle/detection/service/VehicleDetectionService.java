@@ -12,11 +12,15 @@ public class VehicleDetectionService {
 
     private final VehicleDetectionRepository vehicleDetectionRepository;
 
-    public VehicleDetectionService(VehicleDetectionRepository vehicleDetectionRepository) {
+    public VehicleDetectionService(
+            VehicleDetectionRepository vehicleDetectionRepository) {
+
         this.vehicleDetectionRepository = vehicleDetectionRepository;
     }
 
+    // Save detection
     public VehicleDetection saveDetection(VehicleDetection detection) {
+
         detection.setDetectedAt(LocalDateTime.now());
 
         int total =
@@ -30,7 +34,31 @@ public class VehicleDetectionService {
         return vehicleDetectionRepository.save(detection);
     }
 
+    // Get all detections
     public List<VehicleDetection> getAllDetections() {
+
         return vehicleDetectionRepository.findAll();
+    }
+
+    // Get detection by ID
+    public VehicleDetection getDetectionById(Long id) {
+
+        return vehicleDetectionRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Detection not found with id: " + id
+                        )
+                );
+    }
+
+    public void deleteDetection(Long id) {
+
+        if (!vehicleDetectionRepository.existsById(id)) {
+            throw new RuntimeException(
+                    "Detection not found with id: " + id
+            );
+        }
+
+        vehicleDetectionRepository.deleteById(id);
     }
 }
