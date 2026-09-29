@@ -3,6 +3,7 @@ package com.vehicle.detection.service;
 import com.vehicle.detection.entity.VehicleDetection;
 import com.vehicle.detection.repository.VehicleDetectionRepository;
 import org.springframework.stereotype.Service;
+import com.vehicle.detection.exception.ResourceNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,10 +43,9 @@ public class VehicleDetectionService {
 
     // Get detection by ID
     public VehicleDetection getDetectionById(Long id) {
-
         return vehicleDetectionRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Detection not found with id: " + id
                         )
                 );
